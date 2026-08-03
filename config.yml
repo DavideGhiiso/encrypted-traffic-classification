@@ -1,4 +1,4 @@
 target: "82:18:8d:cc:55:30"
 interface: "wlxc4e90a0a11f2"
 window: 5
-k: 2
+estimators: 100

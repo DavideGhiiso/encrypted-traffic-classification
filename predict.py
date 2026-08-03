@@ -1,32 +1,26 @@
 from scapy.all import *
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, ConfusionMatrixDisplay, confusion_matrix
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import yaml
 
-
-
-#X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
-
-
-#def predict_status(pkg):
+# adds packet to the window if it's from/to the target devices
 def callback(pkg):
     global current_window
     if pkg.haslayer(Dot11):
         if pkg.addr2 == TARGET or pkg.addr1 == TARGET:
             current_window.append([pkg.time, len(pkg), pkg.addr2 == TARGET])
 
-
 if __name__ == "__main__":
     with open("config.yml", "r") as f:
         config = yaml.safe_load(f)
         TARGET = config["target"]   
         IFACE = config["interface"]
-        k = config["k"]
+        n_estimators = config["estimators"]
         window = config["window"]
 
     scaler = StandardScaler()
@@ -35,8 +29,8 @@ if __name__ == "__main__":
     Y = dataset["Status"]
     dataset = dataset.drop(columns=['Status', 'N.'])
     X = scaler.fit_transform(dataset)
-    knn = KNeighborsClassifier(n_neighbors=k, weights='distance')
-    knn.fit(X, Y)
+    classifier = RandomForestClassifier(n_estimators=n_estimators, random_state=42)
+    classifier.fit(X, Y)
     
     while True:
         current_window = []
@@ -58,5 +52,5 @@ if __name__ == "__main__":
         # skip if current window has NaN values
         if(curr_win_df.isnull().values.any()):
             continue
-        Y_pred = knn.predict(curr_win_df.dropna().to_numpy())
+        Y_pred = classifier.predict(curr_win_df.dropna().to_numpy())
         print(f"Predicted status: {Y_pred[0]}")
