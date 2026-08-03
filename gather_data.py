@@ -1,5 +1,6 @@
 '''
-The script gathers data from the sniffer wireless interface and stores it into a CSV file.
+Script to gather data from the sniffer wireless interface and stores it into a CSV file.
+It both saves the packets and builds the dataset usable by the classifier
 '''
 
 from scapy.all import *
@@ -10,8 +11,8 @@ import pandas as pd
 
 #TARGET = "bc:f7:30:50:4e:7c"
 consecutive_windows = 10
-packet_count = 0
-window_count = 0
+packet_count = 16468
+window_count = 89
 filename = "packets.csv"
 status_labels = ["idle", "browsing", "streaming"]
 
@@ -33,10 +34,18 @@ if __name__ == "__main__":
         TARGET = config["target"]   
         IFACE = config["interface"]
         window = config["window"]
-    status = -1 # 0: idle, 1: browsing, 2: streaming
+    status = 0 # 0: idle, 1: browsing, 2: streaming
 
-    while status > 0 and status < 3:
-        sniff(iface=IFACE, prn=packet_callback, store=0, timeout=window)
+    status_counter = [5,0,5]
+    while status >= 0 and status < 3:
+        wnd_ctr = 0
+        while wnd_ctr < consecutive_windows:
+            wnd_ctr += 1
+            print(f"Window: {window_count}, {packet_count} packets")
+            print(f"windows per status: {status_counter}")
+            sniff(iface=IFACE, prn=packet_callback, store=0, timeout=window)
+            window_count += 1
         status = int(input("Capture finished. Insert next status: "))
-        window_count += 1
+        if(status >= 0 and status < 3):
+            status_counter[status] += 1
     build_dataset("packets.csv").dropna().to_csv("dataset.csv", index=False)
