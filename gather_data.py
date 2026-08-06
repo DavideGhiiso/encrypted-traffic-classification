@@ -10,10 +10,10 @@ from process_packets import build_dataset
 import pandas as pd
 
 #TARGET = "bc:f7:30:50:4e:7c"
-consecutive_windows = 10
-packet_count = 16468
-window_count = 89
-filename = "packets.csv"
+consecutive_windows = 20
+packet_count = 0
+window_count = 0
+filename = "data/packets2.csv"
 status_labels = ["idle", "browsing", "streaming"]
 
 def packet_callback(pkg):
@@ -24,7 +24,7 @@ def packet_callback(pkg):
             packet_size = len(pkg)
             ts = pkg.time
             uplink = (pkg.addr2 == TARGET)
-            with open("packets.csv", "a") as csvfile:
+            with open(filename, "a") as csvfile:
                 csv_writer = csv.writer(csvfile)
                 csv_writer.writerow([packet_count, ts, window_count, packet_size, uplink, status_labels[status]])
 
@@ -34,9 +34,13 @@ if __name__ == "__main__":
         TARGET = config["target"]   
         IFACE = config["interface"]
         window = config["window"]
+        dataset_path = config["dataset_path"]
     status = 0 # 0: idle, 1: browsing, 2: streaming
+    with open(filename, "w") as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow(["N.", "Timestamp", "Window", "Packet Size", "Uplink", "Status"])
 
-    status_counter = [5,0,5]
+    status_counter = [1,0,0]
     while status >= 0 and status < 3:
         wnd_ctr = 0
         while wnd_ctr < consecutive_windows:
@@ -48,4 +52,4 @@ if __name__ == "__main__":
         status = int(input("Capture finished. Insert next status: "))
         if(status >= 0 and status < 3):
             status_counter[status] += 1
-    build_dataset("packets.csv").dropna().to_csv("dataset.csv", index=False)
+    build_dataset(filename).dropna().to_csv(dataset_path, index=False)

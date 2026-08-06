@@ -22,9 +22,10 @@ if __name__ == "__main__":
         IFACE = config["interface"]
         n_estimators = config["estimators"]
         window = config["window"]
+        dataset_path = config["dataset_path"]
 
     scaler = StandardScaler()
-    dataset = pd.read_csv("dataset1.csv").dropna()
+    dataset = pd.read_csv(dataset_path).dropna()
     # label column
     Y = dataset["Status"]
     dataset = dataset.drop(columns=['Status', 'N.'])
