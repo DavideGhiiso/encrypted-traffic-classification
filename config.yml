@@ -2,4 +2,4 @@ target: "82:18:8d:cc:55:30"
 interface: "wlxc4e90a0a11f2"
 dataset_path: "./data/dataset2.csv"
 window: 5
-estimators: 80
+estimators: 70

@@ -36,22 +36,24 @@ if __name__ == "__main__":
     while True:
         current_window = []
         sniff(iface=IFACE, prn=callback, store=0, timeout=window)   
-        # skip if no packets are capured
-        if len(current_window) == 0:
-            continue
+        Y_pred = ["idle"]
 
-        df = pd.DataFrame(np.array(current_window), columns=["Timestamp", "Packet Size", "Uplink"])
-        curr_win_df = pd.DataFrame(np.array(
-            [[df[df["Uplink"] == True]["Timestamp"].count(),
-            df[df["Uplink"] == False]["Timestamp"].count(),
-            df["Packet Size"].mean(),
-            df["Packet Size"].var(),
-            df["Timestamp"].diff().mean()]]),
-            columns=["Uplink Count", "Downlink Count", "Average Size", "Size Variance", "Inter Time"])
+        if len(current_window) != 0:
+            df = pd.DataFrame(np.array(current_window), columns=["Timestamp", "Packet Size", "Uplink"])
+            curr_win_df = pd.DataFrame(np.array(
+                [[df[df["Uplink"] == True]["Timestamp"].count(),
+                df[df["Uplink"] == False]["Timestamp"].count(),
+                df["Packet Size"].mean(),
+                df["Packet Size"].var(),
+                df["Timestamp"].diff().mean()]]),
+                columns=["Uplink Count", "Downlink Count", "Average Size", "Size Variance", "Inter Time"])
 
-        print(curr_win_df.head())
-        # skip if current window has NaN values
-        if(curr_win_df.isnull().values.any()):
-            continue
-        Y_pred = classifier.predict(curr_win_df.dropna().to_numpy())
+            print(curr_win_df.head())
+            # skip if current window has NaN values
+            if(curr_win_df.isnull().values.any()):
+                continue
+            curr_win_df = scaler.fit_transform(curr_win_df.dropna())
+            Y_pred = classifier.predict(curr_win_df)
+        else:
+            Y_pred[0] = "idle"
         print(f"Predicted status: {Y_pred[0]}")

@@ -35,7 +35,7 @@ X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3)
 
 accuracies = []
 for est in range(10, 101, 10):
-    classifier = RandomForestClassifier(n_estimators=est, random_state=42)
+    classifier = RandomForestClassifier(n_estimators=est, random_state=0)
     classifier.fit(X_train, Y_train)
     Y_pred = classifier.predict(X_test)
     accuracy = accuracy_score(Y_test, Y_pred)
@@ -44,10 +44,12 @@ for est in range(10, 101, 10):
 
 best_est = max(accuracies, key=lambda x: x[1])[0]
 print(f"Best n_estimators value: {best_est}")
-classifier = RandomForestClassifier(n_estimators=best_est, random_state=42)
+classifier = RandomForestClassifier(n_estimators=best_est, random_state=0)
 classifier.fit(X_train, Y_train)
 Y_pred = classifier.predict(X_test)
 cm = confusion_matrix(Y_test, Y_pred)
 cmd = ConfusionMatrixDisplay(confusion_matrix = cm, display_labels=status_labels)
 cmd.plot(cmap=plt.cm.Blues)
+plt.figure()
+plt.scatter(*zip(*accuracies))
 plt.show()
